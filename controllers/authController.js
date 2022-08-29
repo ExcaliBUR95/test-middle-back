@@ -1,25 +1,18 @@
-const UserModel = require("../models/User");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { default: mongoose } = require("mongoose");
+const UserModel = require('../models/User');
+const bcryptjs = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { default: mongoose } = require('mongoose');
 
 async function login(req, res) {
-  const {
-    body: { email, password },
-  } = req;
-
+  const { email, password } = req.body;
   try {
     let user = await UserModel.findOne({ email });
 
-    if (!user) {
-      return res.sendStatus(422 + "14");
-    }
+    !user ? res.sendStatus(422 + '14') : null;
 
-    const comparePassword = bcrypt.compareSync(password, user.password);
+    const comparePassword = bcryptjs.compareSync(password, user.password);
 
-    if (!comparePassword) {
-      return res.sendStatus(422 + "20");
-    }
+    !comparePassword ? res.sendStatus(422 + '20') : null;
 
     const { _id } = user;
 
@@ -33,32 +26,28 @@ async function login(req, res) {
         },
         process.env.JWT_SECRET,
         {
-          expiresIn: "24h",
+          expiresIn: '24h',
         }
       ),
     };
 
     return res.status(200).json(response);
-  } catch (e) {
-    return res.status(500).json({ error: "Не правильно введен пароль!" });
+  } catch (error) {
+    return res.status(500).json({ error: 'Не правильно введен пароль!' });
   }
 }
 
 async function register(req, res) {
-  const {
-    body: { email, password },
-  } = req;
+  const { email, password } = req.body;
 
   try {
     let user = await UserModel.findOne({ email });
 
-    if (user) {
-      return res.status(422).json({ error: "Такой email уже существует" });
-    }
+    user ? res.status(422).json({ error: 'Такой email уже существует' }) : null;
 
     await UserModel.create({
       email,
-      password: bcrypt.hashSync(password, 10),
+      password: bcryptjs.hashSync(password, 10),
       male: req.body.male,
       nickName: req.body.nickName,
       brithDay: req.body.brithDay,
@@ -67,17 +56,19 @@ async function register(req, res) {
 
     return res.sendStatus(201);
   } catch (e) {
-    return res.status(500).json({ error: "Не правильно введены данные!" });
+    return res.status(500).json({ error: 'Не правильно введены данные!' });
   }
 }
+
 async function getUsers(req, res) {
   try {
-    const user = await UserModel.find();
-    res.json(user);
+    const users = await UserModel.find();
+    res.json(users);
   } catch (e) {
     res.status(400).json(e.toString());
   }
 }
+
 async function addImage(req, res) {
   try {
     await UserModel.findByIdAndUpdate(req.params.id, {
@@ -86,32 +77,30 @@ async function addImage(req, res) {
     const getImg = await UserModel.findById(req.params.id);
     res.json(getImg);
   } catch (e) {
-    res
-      .status(500)
-      .json(`ошибка в юезр контроллерс адд имейдж ${e.toString()}`);
+    res.status(500).json(`ошибка c ${e.toString()}`);
   }
 }
+
 async function changePassword(req, res) {
   try {
-    const {
-      body: { password_old, password_new },
-    } = req;
+    const { password_old, password_new } = req.body;
+
     let user = await UserModel.findOne({
       _id: mongoose.Types.ObjectId(req.params.id),
     });
-    const comparePassword = bcrypt.compareSync(password_old, user.password);
+    const comparePassword = bcryptjs.compareSync(password_old, user.password);
 
-    if (!comparePassword) {
-      return res
-        .status(422)
-        .json({ error: "Ошибка, старый пароль введен неверно!" });
-    }
+    !comparePassword
+      ? res.status(422).json({
+          error: 'Ошибка, старый пароль введен неверно!',
+        })
+      : null;
+
     await UserModel.findByIdAndUpdate(req.params.id, {
-      password: bcrypt.hashSync(password_new, 10),
+      password: bcryptjs.hashSync(password_new, 10),
       nickName: req.body.nickName,
     });
-    console.log(password_new);
-    res.status(200).json("uspeh");
+    res.status(200).json('Успешно');
   } catch (e) {
     res.status(400).json({ error: e.toString() });
   }
@@ -133,6 +122,7 @@ async function getUserById(req, res) {
         },
       },
     ]);
+
     res.json(user);
   } catch (e) {
     res.status(400).json(e.toString());
