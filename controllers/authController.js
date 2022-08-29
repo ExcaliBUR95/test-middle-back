@@ -108,17 +108,31 @@ async function changePassword(req, res) {
     }
     await UserModel.findByIdAndUpdate(req.params.id, {
       password: bcrypt.hashSync(password_new, 10),
-      nickName: req.body.nickName
+      nickName: req.body.nickName,
     });
     console.log(password_new);
-    res.status(200).json('uspeh');
+    res.status(200).json("uspeh");
   } catch (e) {
     res.status(400).json({ error: e.toString() });
   }
 }
 async function getUserById(req, res) {
   try {
-    const user = await UserModel.findById( {_id: req.params.id});
+    const user = await UserModel.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(req.params.id),
+        },
+      },
+      {
+        $project: {
+          img: "$img",
+          nickName: "$nickName",
+          brithDay: "$brithDay",
+          email: "$email",
+        },
+      },
+    ]);
     res.json(user);
   } catch (e) {
     res.status(400).json(e.toString());
@@ -132,26 +146,3 @@ module.exports = {
   getUserById,
   changePassword,
 };
-// async function changePassword(req,res) {
-//   try {
-//     const {
-//       body: {  password_new },
-//     } = req;
-//     let user = await UserModel.aggregate()
-//     .match({_id:  mongoose.Types.ObjectId(req.params.id)})
-
-//     const comparePassword = bcrypt.compareSync(password,  password_old);
-
-//     if(!comparePassword){
-//       return res.status(422 + "20").json({error: 'Ошибка, старый пароль введен неверно!'})
-//     }
-
-//     await UserModel.findByIdAndUpdate(req.params.id, {
-//       password_old: req.body.req,
-//       password_new: bcrypt.hashSync(password_new, 10),
-//     })
-//     res.status(200).json(pas,"Пароль успешно изменен")
-//   } catch (e) {
-//     res.status(500).json({error: e.toString()})
-//   }
-// }
