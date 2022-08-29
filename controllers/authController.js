@@ -107,7 +107,22 @@ async function changePassword(req, res) {
 }
 async function getUserById(req, res) {
   try {
-    const user = await UserModel.findById({ _id: req.params.id });
+    const user = await UserModel.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(req.params.id),
+        },
+      },
+      {
+        $project: {
+          img: "$img",
+          nickName: "$nickName",
+          brithDay: "$brithDay",
+          email: "$email",
+        },
+      },
+    ]);
+
     res.json(user);
   } catch (e) {
     res.status(400).json(e.toString());
