@@ -11,7 +11,10 @@ const schema = new mongoose.Schema({
     required: true,
   },
   male: Boolean,
-  nickName: String,
+  nickName: {
+    type: String,
+    required: true,
+  },
   brithDay: String,
   img: {
     type: String,

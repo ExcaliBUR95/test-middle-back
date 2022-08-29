@@ -21,7 +21,6 @@ async function checkAuth(req, res, next) {
 
     const decodes = jwt.verify(tokenString, process.env.JWT_SECRET);
     req.user = await User.findById(decodes._id);
-    console.log( req.user);
     return next();
   } catch (e) {
     return res.send(e.toString());

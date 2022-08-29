@@ -2,7 +2,6 @@ const UserModel = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { default: mongoose } = require("mongoose");
-const path = require("path");
 
 async function login(req, res) {
   const {
@@ -101,8 +100,7 @@ async function changePassword(req, res) {
       _id: mongoose.Types.ObjectId(req.params.id),
     });
     const comparePassword = bcrypt.compareSync(password_old, user.password);
-    console.log(password_old);
-    console.log(password_new);
+
     if (!comparePassword) {
       return res
         .status(422)
